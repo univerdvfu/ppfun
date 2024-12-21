@@ -1,0 +1,54 @@
+version: '3.3'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: your_root_password
+      MYSQL_DATABASE: pixelplanet
+      MYSQL_USER: pixelplanet
+      MYSQL_PASSWORD: sqlpassword
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+#    healthcheck:
+ #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+  #    interval: 20s
+   #   timeout: 10s
+    #  retries: 10
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  app: # Сервис app должен быть под ключом services
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pixelplanet-app
+    ports:
+      - "5000:5443"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - MYSQL_HOST=mariadb
+      - MYSQL_USER=pixelplanet
+      - MYSQL_DATABASE=pixelplanet
+      - MYSQL_PW=sqlpassword
+      - SESSION_SECRET=ayyylmao
+#    depends_on:
+ #     mariadb
+        #condition: service_healthy
+  #    redis
+        #condition: service_started
+    restart: always
+
+volumes:
+  mariadb_data:
